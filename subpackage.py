@@ -1,3 +1,7 @@
+"""
+Written by iant
+"""
+
 from typing import BinaryIO
 
 def add_pad(length):
@@ -20,9 +24,10 @@ def get_bundle_folder_num(filename: str) -> int:
 
 
 class FlatBuf:
-    _table = {}
+    _table: dict[int, int]
 
     def table(self, file: BinaryIO, offset: int) -> None:
+        self._table = {}
         file.seek(offset)
         table_offset = file.tell() - int.from_bytes(file.read(4), "little", signed=True)
         file.seek(table_offset)
