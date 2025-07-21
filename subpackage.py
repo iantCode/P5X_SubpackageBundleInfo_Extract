@@ -255,7 +255,6 @@ class Subpackage():
             for _ in range(map.file_count):
                 file_offset = file.tell() + int.from_bytes(file.read(4), "little")
                 file_offset_list.append(file_offset)
-        file_offset_list.reverse()
 
         for idx, file_offset in enumerate(file_offset_list):
             file_entry = FileEntry.read(file, file_offset)
