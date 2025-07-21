@@ -81,7 +81,6 @@ class SubpackageHeader(FlatBuf):
             length = int.from_bytes(file.read(4), "little")
             bundlename = file.read(add_pad(length)).decode('ascii').split('\x00', 1)[0]
             header.bundlechunk_names.append(bundlename)
-        header.bundlechunk_names.reverse()
 
         if 3 in header._table:
             length = int.from_bytes(file.read(4), "little")
