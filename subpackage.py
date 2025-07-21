@@ -38,8 +38,8 @@ class SubpackageHeader(FlatBuf):
     next_offset: int = int()
     map_header_offset: int = int()
     chunklist_offset: int = int()
-    bundlechunk_names: list[str] = list()
-    bundlechunk_offsets: list[int] = list()
+    bundlechunk_names: list[str]
+    bundlechunk_offsets: list[int]
     chunklist_name: str = str()
     is_small: bool = False
 
@@ -64,6 +64,7 @@ class SubpackageHeader(FlatBuf):
             bundlechunk_count_offset = file.tell() + int.from_bytes(file.read(4), "little")
             file.seek(bundlechunk_count_offset)
             bundlechunk_count = int.from_bytes(file.read(4), "little")
+            header.bundlechunk_offsets = []
             for _ in range(bundlechunk_count):
                 header.bundlechunk_offsets.append(file.tell() + int.from_bytes(file.read(4), "little"))
 
@@ -75,6 +76,7 @@ class SubpackageHeader(FlatBuf):
             for _ in range(bundlechunk_count):
                 header.bundlechunk_offsets.append(file.tell() + int.from_bytes(file.read(4), "little"))
 
+        header.bundlechunk_names = []
         for _ in range(bundlechunk_count):
             length = int.from_bytes(file.read(4), "little")
             bundlename = file.read(add_pad(length)).decode('ascii').split('\x00', 1)[0]
@@ -92,7 +94,7 @@ class SubpackageHeader(FlatBuf):
 
 class FileMapHeader:
     file_count: int = int()
-    file_offsets: list[int] = list()
+    file_offsets: list[int]
 
     @classmethod
     def read(cls, file: BinaryIO, offset: int) -> 'FileMapHeader':
@@ -107,8 +109,8 @@ class FileMapHeader:
 class SmallFileMap:
     file_count: int = int()
     name: str = str()
-    files: list['FileEntry'] = list()
-    file_index_list: list[int] = list()
+    files: list['FileEntry']
+    file_index_list: list[int]
 
     @classmethod
     def read(cls, file: BinaryIO, offset: int) -> 'SmallFileMap':
@@ -122,9 +124,9 @@ class SmallFileMap:
 
 class FileMap(FlatBuf):
     file_count: int = int()
-    file_index_list: list[int] = list()
+    file_index_list: list[int]
     name: str = str()
-    files: list['FileEntry'] = list()
+    files: list['FileEntry']
 
     @classmethod
     def read(cls, file: BinaryIO, offset: int) -> 'FileMap':
@@ -221,14 +223,22 @@ class FileEntry(FlatBuf):
 
 class Subpackage():
     header: 'SubpackageHeader' = None
-    all_maps: list['FileMap'] = list()
+    all_maps: list['FileMap']
 
     @classmethod
     def read(cls, filename: str) -> 'Subpackage':
+        """
+            Read a subpackage file and return a Subpackage object.
+            Args:
+                filename (str): The name of the subpackage file to read.
+            Returns:
+                Subpackage: An instance of the Subpackage class containing the parsed data.
+        """
         subpackage = cls()
         file = open(filename, "rb")
         subpackage.header = SubpackageHeader.read(file)
 
+        subpackage.all_maps = []
         if not subpackage.header.is_small:
             file_map_header = FileMapHeader.read(file, subpackage.header.map_header_offset)
             for ptr in file_map_header.file_offsets:
@@ -264,6 +274,11 @@ class Subpackage():
         return subpackage
 
     def to_json(self, filename: str) -> None:
+        """
+            Convert the subpackage data to JSON format and save it to a file.
+            args:
+                filename (str): The name of the file to save the JSON data.
+        """
         import json
         data = {
             "header": {
