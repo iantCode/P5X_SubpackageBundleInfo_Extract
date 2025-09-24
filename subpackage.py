@@ -120,6 +120,8 @@ class SmallFileMap:
     @classmethod
     def read(cls, file: BinaryIO, offset: int) -> 'SmallFileMap':
         small_map = cls()
+        small_map.files = []
+        small_map.file_index_list = []
         file.seek(offset)   
         length = int.from_bytes(file.read(4), "little")
         small_map.name = file.read(add_pad(length)).decode('ascii').split('\x00', 1)[0]
