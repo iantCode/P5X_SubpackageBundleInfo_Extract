@@ -78,6 +78,7 @@ class SubpackageHeader(FlatBuf):
             file.seek(start_entry + header._table[2])
             file.read(4)
             bundlechunk_count = int.from_bytes(file.read(4), "little")
+            header.bundlechunk_offsets = []
             for _ in range(bundlechunk_count):
                 header.bundlechunk_offsets.append(file.tell() + int.from_bytes(file.read(4), "little"))
 
@@ -113,13 +114,13 @@ class FileMapHeader:
 class SmallFileMap:
     file_count: int = int()
     name: str = str()
-    files: list['FileEntry']
+    files: list['FileEntry'] = []
     file_index_list: list[int]
 
     @classmethod
     def read(cls, file: BinaryIO, offset: int) -> 'SmallFileMap':
         small_map = cls()
-        file.seek(offset)
+        file.seek(offset)   
         length = int.from_bytes(file.read(4), "little")
         small_map.name = file.read(add_pad(length)).decode('ascii').split('\x00', 1)[0]
 
@@ -263,7 +264,7 @@ class Subpackage():
 
         for idx, file_offset in enumerate(file_offset_list):
             file_entry = FileEntry.read(file, file_offset)
-            file_entry.bundlechunk_name = subpackage.header.bundlechunk_names[file_entry.bundlechunk_index]
+            file_entry.bundlechunk_name = subpackage.header.bundlechunk_names[len(subpackage.header.bundlechunk_names) - 1 - file_entry.bundlechunk_index]
 
             if len(subpackage.all_maps) == 1:
                 subpackage.all_maps[0].files.append(file_entry)
