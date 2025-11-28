@@ -76,7 +76,8 @@ class SubpackageHeader(FlatBuf):
         else:
             header.is_small = True
             file.seek(start_entry + header._table[2])
-            file.read(4)
+            next_offset = file.tell() + int.from_bytes(file.read(4), "little")
+            file.seek(next_offset)
             bundlechunk_count = int.from_bytes(file.read(4), "little")
             header.bundlechunk_offsets = []
             for _ in range(bundlechunk_count):
